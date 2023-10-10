@@ -35,3 +35,16 @@ add_executable(${PROJECT_NAME}
     main.cpp
     ${tinyxml2_SOURCE_DIR}/tinyxml2.cpp
 )
+
+set(TEST_PROJECT test-${PROJECT_NAME})
+
+add_executable(${TEST_PROJECT}
+    parse_project.cpp
+    project.cpp
+    test_parseproject.cpp
+    ${tinyxml2_SOURCE_DIR}/tinyxml2.cpp
+)
+
+target_link_libraries(${TEST_PROJECT}
+    gtest_main
+)

@@ -13,6 +13,7 @@ struct Project {
     string name;
     bool isApplication;
     vector<string> source;
+    vector<string> includes;
 };
 
 ostream& operator<<(ostream&, const Project&);
