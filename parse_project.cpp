@@ -13,12 +13,13 @@ shared_ptr<Project> parse_project(const XMLElement* e) {
         string name = x->Name();
         if (name == "PropertyGroup") parse_propertygroup(p, x);
         if (name == "ItemGroup") parse_itemgroup(p, x);
+        if (name == "ItemDefinitionGroup") parse_itemgroup(p, x);
     }
 
     return p;
 }
 
-void parse_propertygroup(shared_ptr<Project> p, const XMLElement* e) {
+void parse_propertygroup(const shared_ptr<Project>& p, const XMLElement* e) {
     auto av = e->Attribute("Condition");
     if (av) {
         string_view condition(av);
@@ -40,7 +41,7 @@ void parse_propertygroup(shared_ptr<Project> p, const XMLElement* e) {
     }
 }
 
-void parse_itemgroup(shared_ptr<Project> p, const XMLElement* e) {
+void parse_itemgroup(const shared_ptr<Project>& p, const XMLElement* e) {
     auto av = e->Attribute("Condition");
     if (av) {
         string_view condition(av);
@@ -61,11 +62,11 @@ void parse_itemgroup(shared_ptr<Project> p, const XMLElement* e) {
     }
 }
 
-void parse_clcompile(shared_ptr<Project> p, const XMLElement* e) {
+void parse_clcompile(const shared_ptr<Project>& p, const XMLElement* e) {
     for (auto x: e) {
         string name = x->Name();
         string text = x->GetText();
-        if (name == "AdditionalIncludes") {
+        if (name == "AdditionalIncludeDirectories") {
             parse_additionalincludes(p, text);
         }
     }
@@ -73,10 +74,10 @@ void parse_clcompile(shared_ptr<Project> p, const XMLElement* e) {
 
 }
 
-void parse_additionalincludes(shared_ptr<Project> p, const string_view incs) {
+void parse_additionalincludes(const shared_ptr<Project>& p, const string_view& incs) {
     string_view delim { ";" };
 
     for(const auto i : std::views::split(incs, delim)) {
-        p->includes.push_back(string(string_view(i)));
+        p->includes.emplace_back(i.begin(), i.end());
     }
 }

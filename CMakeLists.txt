@@ -25,7 +25,7 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/stanthomas/tinyxml2-ex.git
 )
 
-FetchContent_MakeAvailable(gtest tinyxml tinyxmlex)
+FetchContent_MakeAvailable(tinyxml tinyxmlex)
 
 include_directories(${tinyxml_SOURCE_DIR} ${tinyxmlex_SOURCE_DIR})
 
