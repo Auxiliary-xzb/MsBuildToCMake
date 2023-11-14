@@ -5,6 +5,8 @@
 
 using std::string_view;
 using std::ranges::views::lazy_split;
+using namespace std::ranges;
+using namespace std::views;
 
 shared_ptr<Project> parse_project(const XMLElement* e) {
     auto p = make_shared<Project>();
@@ -76,8 +78,18 @@ void parse_clcompile(const shared_ptr<Project>& p, const XMLElement* e) {
 
 void parse_additionalincludes(const shared_ptr<Project>& p, const string_view& incs) {
     string_view delim { ";" };
+    const string ProjectDir = "$(ProjectDir)";
 
-    for(const auto i : std::views::split(incs, delim)) {
-        p->includes.emplace_back(i.begin(), i.end());
+    for(const auto i : split(incs, delim)) {
+        auto c = string_view(i.begin(), i.end());
+        if (c.starts_with(ProjectDir)) {
+            c.remove_prefix(ProjectDir.size());
+            string mydir = string("${CMAKE_PROJECT_DIR}") + string(c);
+            p->includes.emplace_back(mydir);
+        } else {
+            p->includes.emplace_back(c);
+        }
     }
 }
+
+
