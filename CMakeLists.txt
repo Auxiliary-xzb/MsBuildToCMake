@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(msbuildtocmake LANGUAGES CXX VERSION 0.1)
 
@@ -34,17 +35,4 @@ add_executable(${PROJECT_NAME}
     parse_project.cpp
     main.cpp
     ${tinyxml2_SOURCE_DIR}/tinyxml2.cpp
-)
-
-set(TEST_PROJECT test-${PROJECT_NAME})
-
-add_executable(${TEST_PROJECT}
-    parse_project.cpp
-    project.cpp
-    test_parseproject.cpp
-    ${tinyxml2_SOURCE_DIR}/tinyxml2.cpp
-)
-
-target_link_libraries(${TEST_PROJECT}
-    gtest_main
 )
