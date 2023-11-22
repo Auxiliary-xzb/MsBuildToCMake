@@ -22,14 +22,19 @@ ostream& operator<<(ostream& out, const vector<string>& lst) {
 
 ostream& operator<<(ostream& out, const Project& p) {
     if (out) {
+
+        if (p.name != "") {
+            out << "project(" << p.name << " LANGUAGES CXX)" << endl;
+        }
+
         if (p.isApplication) out << "add_application";
         else out << "add_library";
-        out << "(" << p.name << endl;
+        out << "(${PROJECT_NAME}" <<  endl;
         out << p.source;
         out << ")" << endl;
 
         if (!p.includes.empty()) {
-            out << "target_include_directories(" << p.name << " PUBLIC" << endl;
+            out << "target_include_directories(${PROJECT_NAME} PUBLIC" << endl;
             out << p.includes;
             out << ")" << endl;
         }

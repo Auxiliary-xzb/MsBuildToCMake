@@ -21,27 +21,53 @@ shared_ptr<Project> parse_project(const XMLElement* e) {
     return p;
 }
 
+void parse_conditional_propertygroup(const shared_ptr<Project>&, const XMLElement*);
+void parse_global_propertygroup(const shared_ptr<Project>&, const XMLElement*);
+
 void parse_propertygroup(const shared_ptr<Project>& p, const XMLElement* e) {
     auto av = e->Attribute("Condition");
     if (av) {
         string_view condition(av);
         if (condition.find_first_of("Release") != string_view::npos) {
-            // We care about this one
+            parse_conditional_propertygroup(p, e);
+        }
+    }
 
-            for(auto i: e) {
-                string name = i->Name();
-                string text = i->GetText();
+    auto gbl = e->Attribute("Label");
+    if (gbl && string(gbl) == "Globals")
+        parse_global_propertygroup(p, e);
+}
 
-                if (name == "TargetName") p->name = text;
-                if (name == "ConfigurationType") {
-                    if (text == "Application")
-                        p->isApplication = true;
-                }
-            }
+void parse_conditional_propertygroup(const shared_ptr<Project>& p, const XMLElement* e) {
+    for(auto i: e) {
+        string name = i->Name();
+        string text = i->GetText();
 
+        if (name == "TargetName") p->name = text;
+        if (name == "ConfigurationType") {
+            if (text == "Application")
+                p->isApplication = true;
+        }
+        if (name == "LanguageStandard") {
+            if (text == "stdcpp11") p->standard = LanguageStandard::cpp11;
+            else if (text == "stdcpp14") p->standard = LanguageStandard::cpp14;
+            else if (text == "stdcpp17") p->standard = LanguageStandard::cpp17;
+            else if (text == "stdcpp20") p->standard = LanguageStandard::cpp20;
+            else if (text == "stdcpp23") p->standard = LanguageStandard::cpp23;
+            else if (text == "stdcpp2x") p->standard = LanguageStandard::cpp2x;
         }
     }
 }
+
+void parse_global_propertygroup(const shared_ptr<Project>& p, const XMLElement* e) {
+    for(auto i: e) {
+        string name = i->Name();
+        string text = i->GetText();
+
+        if (name == "RootNamespace") p->name = text;
+    }
+}
+
 
 void parse_itemgroup(const shared_ptr<Project>& p, const XMLElement* e) {
     auto av = e->Attribute("Condition");
