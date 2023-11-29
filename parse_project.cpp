@@ -48,14 +48,9 @@ void parse_conditional_propertygroup(const shared_ptr<Project>& p, const XMLElem
             if (text == "Application")
                 p->isApplication = true;
         }
-        if (name == "LanguageStandard") {
-            if (text == "stdcpp11") p->standard = LanguageStandard::cpp11;
-            else if (text == "stdcpp14") p->standard = LanguageStandard::cpp14;
-            else if (text == "stdcpp17") p->standard = LanguageStandard::cpp17;
-            else if (text == "stdcpp20") p->standard = LanguageStandard::cpp20;
-            else if (text == "stdcpp23") p->standard = LanguageStandard::cpp23;
-            else if (text == "stdcpp2x") p->standard = LanguageStandard::cpp2x;
-        }
+        if (name == "ClCompile")
+            parse_clcompile(p, i);
+
     }
 }
 
@@ -97,9 +92,15 @@ void parse_clcompile(const shared_ptr<Project>& p, const XMLElement* e) {
         if (name == "AdditionalIncludeDirectories") {
             parse_additionalincludes(p, text);
         }
+        if (name == "LanguageStandard") {
+            if (text == "stdcpp11") p->standard = LanguageStandard::cpp11;
+            else if (text == "stdcpp14") p->standard = LanguageStandard::cpp14;
+            else if (text == "stdcpp17") p->standard = LanguageStandard::cpp17;
+            else if (text == "stdcpp20") p->standard = LanguageStandard::cpp20;
+            else if (text == "stdcpp23") p->standard = LanguageStandard::cpp23;
+            else if (text == "stdcpp2x") p->standard = LanguageStandard::cpp2x;
+        }
     }
-
-
 }
 
 void parse_additionalincludes(const shared_ptr<Project>& p, const string_view& incs) {
