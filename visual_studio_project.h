@@ -85,6 +85,8 @@ class VisualStudioProject {
 
  private:
   void ParseProjectConfigurations();
+  void ParseHeaderFiles();
+  void ParseSourceFiles();
 
  private:
   std::string project_name_;                  ///< 项目名称

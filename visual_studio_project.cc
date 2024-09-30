@@ -23,6 +23,8 @@ bool VisualStudioProject::ParseFromFile(
   }
 
   ParseProjectConfigurations();
+  ParseHeaderFiles();
+  ParseSourceFiles();
   return true;
 }
 
@@ -35,9 +37,41 @@ void VisualStudioProject::ParseProjectConfigurations() {
 
     const auto* platform =
         tinyxml2::find_element(project_configuration, "Platform");
-    project_configuration_vec_.emplace_back(tinyxml2::text(configuration),
-                                            tinyxml2::text(platform));
+    if (configuration != nullptr && platform != nullptr) {
+      project_configuration_vec_.emplace_back(tinyxml2::text(configuration),
+                                              tinyxml2::text(platform));
+    }
   }
 
   spdlog::info("{}", fmt::join(project_configuration_vec_, "\n"));
+}
+
+void VisualStudioProject::ParseHeaderFiles() {
+  for (const auto* header_file_element : tinyxml2::selection(
+           vcx_project_xml_document_, "Project/ItemGroup/ClInclude")) {
+    auto header_file =
+        tinyxml2::attribute_value(header_file_element, "Include");
+    if (!header_file.empty()) {
+      header_file_vec_.emplace_back(header_file);
+    }
+  }
+
+  std::sort(header_file_vec_.begin(), header_file_vec_.end());
+
+  spdlog::info("{}", fmt::join(header_file_vec_, "\n"));
+}
+
+void VisualStudioProject::ParseSourceFiles() {
+  for (const auto* source_file_element : tinyxml2::selection(
+           vcx_project_xml_document_, "Project/ItemGroup/ClCompile")) {
+    auto source_file =
+        tinyxml2::attribute_value(source_file_element, "Include");
+    if (!source_file.empty()) {
+      source_file_vec_.emplace_back(source_file);
+    }
+  }
+
+  std::sort(source_file_vec_.begin(), source_file_vec_.end());
+
+  spdlog::info("{}", fmt::join(source_file_vec_, "\n"));
 }
