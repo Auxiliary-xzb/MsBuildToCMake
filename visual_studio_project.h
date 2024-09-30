@@ -46,6 +46,8 @@ class ProjectConfiguration {
 
   auto additional_options() const -> std::string { return additional_options_; }
 
+  void set_configuration_type(const std::string &type_str);
+
  private:
   std::string configuration_;             ///< 编译类型，Debug，Release等
   std::string platform_;                  ///< 编译目标平台
@@ -87,6 +89,7 @@ class VisualStudioProject {
   void ParseProjectConfigurations();
   void ParseHeaderFiles();
   void ParseSourceFiles();
+  void ParseProjectConfiguration();
 
  private:
   std::string project_name_;                  ///< 项目名称
