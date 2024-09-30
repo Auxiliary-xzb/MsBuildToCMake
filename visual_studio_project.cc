@@ -16,6 +16,10 @@ bool VisualStudioProject::ParseFromFile(
     return false;
   }
 
+  project_root_path_ =
+      std::filesystem::path(vcx_project_file_path).parent_path().string();
+  spdlog::info("Project root path: {}", project_root_path_);
+
   if (vcx_project_xml_document_.LoadFile(vcx_project_file_path.data()) !=
       tinyxml2::XML_SUCCESS) {
     spdlog::error("Failed to load project: {}", vcx_project_file_path);

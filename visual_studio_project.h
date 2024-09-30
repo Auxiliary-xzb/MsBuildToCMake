@@ -90,6 +90,7 @@ class VisualStudioProject {
 
  private:
   std::string project_name_;                  ///< 项目名称
+  std::string project_root_path_;             ///< 项目根目录
   std::vector<std::string> source_file_vec_;  ///< 源文件列表
   std::vector<std::string> header_file_vec_;  ///< 头文件列表
   std::vector<ProjectConfiguration> project_configuration_vec_;
