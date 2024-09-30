@@ -8,10 +8,11 @@
 
 #include "project.h"
 
-std::shared_ptr<Project> parse_project(const tinyxml2::XMLElement* e);
+std::shared_ptr<Project> parse_project(
+    const tinyxml2::XMLElement* project_root_element);
 
 void parse_property_group(const std::shared_ptr<Project>& p,
-                          const tinyxml2::XMLElement* e);
+                          const tinyxml2::XMLElement* element);
 
 void parse_item_group(const std::shared_ptr<Project>& p,
                       const tinyxml2::XMLElement* e);

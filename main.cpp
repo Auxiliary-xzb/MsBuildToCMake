@@ -4,7 +4,7 @@
 
 int main(int argc, const char* argv[]) {
   if (argc == 1) {
-    std::cerr << "usage: " << argv[0] << "<project.vcxproj>" << std::endl;
+    std::cerr << "usage: " << argv[0] << " <project.vcxproj>" << std::endl;
     return 1;
   }
 

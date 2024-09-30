@@ -5,59 +5,80 @@
 #include <ranges>
 #include <string_view>
 
-std::shared_ptr<Project> parse_project(const tinyxml2::XMLElement* e) {
+std::shared_ptr<Project> parse_project(
+    const tinyxml2::XMLElement* project_root_element) {
   auto p = std::make_shared<Project>();
 
-  for (auto x : e) {
-    std::string name = x->Name();
-    if (name == "PropertyGroup") parse_property_group(p, x);
-    if (name == "ItemGroup") parse_item_group(p, x);
-    if (name == "ItemDefinitionGroup") parse_item_group(p, x);
+  for (const auto* element : project_root_element) {
+    const std::string& name = element->Name();
+    if (name == "PropertyGroup") {
+      parse_property_group(p, element);
+    }
+
+    if (name == "ItemGroup") {
+      parse_item_group(p, element);
+    }
+
+    if (name == "ItemDefinitionGroup") {
+      parse_item_group(p, element);
+    }
   }
 
   return p;
 }
 
-void parse_conditional_propertygroup(const std::shared_ptr<Project>&,
-                                     const tinyxml2::XMLElement*);
-void parse_global_propertygroup(const std::shared_ptr<Project>&,
-                                const tinyxml2::XMLElement*);
+void parse_conditional_property_group(const std::shared_ptr<Project>&,
+                                      const tinyxml2::XMLElement* element);
+void parse_global_property_group(const std::shared_ptr<Project>&,
+                                 const tinyxml2::XMLElement*);
 
 void parse_property_group(const std::shared_ptr<Project>& p,
-                          const tinyxml2::XMLElement* e) {
-  auto av = e->Attribute("Condition");
-  if (av) {
-    std::string_view condition(av);
+                          const tinyxml2::XMLElement* element) {
+  if (const auto* attribute_condition = element->Attribute("Condition")) {
+    const std::string_view condition(attribute_condition);
     if (condition.find_first_of("Release") != std::string_view::npos) {
-      parse_conditional_propertygroup(p, e);
+      parse_conditional_property_group(p, element);
     }
   }
 
-  auto gbl = e->Attribute("Label");
-  if (gbl && std::string(gbl) == "Globals") parse_global_propertygroup(p, e);
+  if (const auto* attribute_label = element->Attribute("Label")) {
+    if (std::string(attribute_label) == "Globals") {
+      parse_global_property_group(p, element);
+    }
+  }
 }
 
-void parse_conditional_propertygroup(const std::shared_ptr<Project>& p,
-                                     const tinyxml2::XMLElement* e) {
-  for (auto i : e) {
+void parse_conditional_property_group(const std::shared_ptr<Project>& p,
+                                      const tinyxml2::XMLElement* element) {
+  for (const auto* i : element) {
     std::string name = i->Name();
     std::string text = i->GetText();
 
-    if (name == "TargetName") p->name = text;
+    if (name == "TargetName") {
+      p->name = text;
+    }
+
     if (name == "ConfigurationType") {
-      if (text == "Application") p->isApplication = true;
+      if (text == "Application") {
+        p->isApplication = true;
+      }
     }
-    if (name == "ClCompile") parse_cl_compile(p, i);
+
+    if (name == "ClCompile") {
+      parse_cl_compile(p, i);
+    }
   }
 }
 
-void parse_global_propertygroup(const std::shared_ptr<Project>& p,
-                                const tinyxml2::XMLElement* e) {
+void parse_global_property_group(const std::shared_ptr<Project>& p,
+                                 const tinyxml2::XMLElement* e) {
   for (auto i : e) {
     std::string name = i->Name();
     std::string text = i->GetText();
 
-    if (name == "RootNamespace") p->name = text;
+    if (name == "RootNamespace" || name == "ProjectName") {
+      p->name = text;
+    }
   }
 }
 

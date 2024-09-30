@@ -51,10 +51,11 @@ std::ostream& operator<<(std::ostream& out, const Project& p) {
       out << "set(CMAKE_CXX_STANDARD_REQUIRED ON)" << std::endl << std::endl;
     }
 
-    if (p.isApplication)
-      out << "add_application";
-    else
+    if (p.isApplication) {
+      out << "add_executable";
+    } else {
       out << "add_library";
+    }
     out << "(${PROJECT_NAME}" << std::endl;
     out << p.source;
     out << ")" << std::endl;
