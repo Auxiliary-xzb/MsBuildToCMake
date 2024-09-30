@@ -10,29 +10,37 @@ include(FetchContent)
 include(CTest)
 
 FetchContent_Declare(
-    gtest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG v1.14.0
+        gtest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG v1.14.0
 )
 
 FetchContent_Declare(
-    tinyxml
-    GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
-    GIT_TAG 9.0.0
+        tinyxml
+        GIT_REPOSITORY https://github.com/leethomason/tinyxml2.git
+        GIT_TAG 9.0.0
 )
 
 FetchContent_Declare(
-    tinyxmlex
-    GIT_REPOSITORY https://github.com/stanthomas/tinyxml2-ex.git
+        tinyxmlex
+        GIT_REPOSITORY https://github.com/stanthomas/tinyxml2-ex.git
 )
 
-FetchContent_MakeAvailable(tinyxml tinyxmlex)
+FetchContent_Declare(
+        spdlog
+        GIT_REPOSITORY https://github.com/gabime/spdlog.git
+        GIT_TAG v1.14.0
+)
 
-include_directories(${tinyxml_SOURCE_DIR} ${tinyxmlex_SOURCE_DIR})
+FetchContent_MakeAvailable(tinyxml tinyxmlex spdlog)
+
+include_directories(${tinyxml_SOURCE_DIR} ${tinyxmlex_SOURCE_DIR} ${spdlog_SOURCE_DIR}/include)
 
 add_executable(${PROJECT_NAME}
-    project.cpp
-    parse_project.cpp
-    main.cpp
-    ${tinyxml2_SOURCE_DIR}/tinyxml2.cpp
+        project.cpp
+        parse_project.cpp
+        main.cpp
+        ${tinyxml2_SOURCE_DIR}/tinyxml2.cpp
+        visual_studio_project.cc
+        visual_studio_project.h
 )
