@@ -1,13 +1,9 @@
-#ifndef PROJECT_H
-#define PROJECT_H
+#ifndef MS_BUILD_TO_CMAKE_PROJECT_H_
+#define MS_BUILD_TO_CMAKE_PROJECT_H_
 
 #include <iostream>
 #include <string>
 #include <vector>
-
-using std::ostream;
-using std::string;
-using std::vector;
 
 enum class LanguageStandard {
   unspecified,
@@ -20,14 +16,14 @@ enum class LanguageStandard {
 };
 
 struct Project {
-  string name;
+  std::string name;
   bool isApplication;
   LanguageStandard standard = LanguageStandard::unspecified;
 
-  vector<string> source;
-  vector<string> includes;
+  std::vector<std::string> source;
+  std::vector<std::string> includes;
 };
 
-ostream& operator<<(ostream&, const Project&);
+std::ostream& operator<<(std::ostream&, const Project&);
 
-#endif
+#endif  // MS_BUILD_TO_CMAKE_PROJECT_H_

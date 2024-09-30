@@ -4,27 +4,25 @@
 #include <ranges>
 #include <string_view>
 
-using std::endl;
-using namespace std;
-using namespace std::views;
-
-ostream& operator<<(ostream& out, const vector<string>& lst) {
+std::ostream& operator<<(std::ostream& out,
+                         const std::vector<std::string>& lst) {
   if (out) {
     auto work(lst);
-    ranges::sort(work);
-    const auto [first, last] = ranges::unique(work);
+    std::ranges::sort(work);
+    const auto [first, last] = std::ranges::unique(work);
     work.erase(first, last);
     for (auto s : work) {
-      out << "    " << s << endl;
+      out << "    " << s << std::endl;
     }
   }
   return out;
 }
 
-ostream& operator<<(ostream& out, const Project& p) {
+std::ostream& operator<<(std::ostream& out, const Project& p) {
   if (out) {
     if (p.name != "") {
-      out << "project(" << p.name << " LANGUAGES CXX)" << endl << endl;
+      out << "project(" << p.name << " LANGUAGES CXX)" << std::endl
+          << std::endl;
     }
 
     if (p.standard != LanguageStandard::unspecified) {
@@ -49,22 +47,22 @@ ostream& operator<<(ostream& out, const Project& p) {
           out << "23";
           break;
       }
-      out << ")" << endl;
-      out << "set(CMAKE_CXX_STANDARD_REQUIRED ON)" << endl << endl;
+      out << ")" << std::endl;
+      out << "set(CMAKE_CXX_STANDARD_REQUIRED ON)" << std::endl << std::endl;
     }
 
     if (p.isApplication)
       out << "add_application";
     else
       out << "add_library";
-    out << "(${PROJECT_NAME}" << endl;
+    out << "(${PROJECT_NAME}" << std::endl;
     out << p.source;
-    out << ")" << endl;
+    out << ")" << std::endl;
 
     if (!p.includes.empty()) {
-      out << "target_include_directories(${PROJECT_NAME} PUBLIC" << endl;
+      out << "target_include_directories(${PROJECT_NAME} PUBLIC" << std::endl;
       out << p.includes;
-      out << ")" << endl;
+      out << ")" << std::endl;
     }
   }
   return out;

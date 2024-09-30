@@ -5,91 +5,90 @@
 #include <ranges>
 #include <string_view>
 
-using std::string_view;
-using std::ranges::views::lazy_split;
-using namespace std::ranges;
-using namespace std::views;
-
-shared_ptr<Project> parse_project(const XMLElement* e) {
-  auto p = make_shared<Project>();
+std::shared_ptr<Project> parse_project(const tinyxml2::XMLElement* e) {
+  auto p = std::make_shared<Project>();
 
   for (auto x : e) {
-    string name = x->Name();
-    if (name == "PropertyGroup") parse_propertygroup(p, x);
-    if (name == "ItemGroup") parse_itemgroup(p, x);
-    if (name == "ItemDefinitionGroup") parse_itemgroup(p, x);
+    std::string name = x->Name();
+    if (name == "PropertyGroup") parse_property_group(p, x);
+    if (name == "ItemGroup") parse_item_group(p, x);
+    if (name == "ItemDefinitionGroup") parse_item_group(p, x);
   }
 
   return p;
 }
 
-void parse_conditional_propertygroup(const shared_ptr<Project>&,
-                                     const XMLElement*);
-void parse_global_propertygroup(const shared_ptr<Project>&, const XMLElement*);
+void parse_conditional_propertygroup(const std::shared_ptr<Project>&,
+                                     const tinyxml2::XMLElement*);
+void parse_global_propertygroup(const std::shared_ptr<Project>&,
+                                const tinyxml2::XMLElement*);
 
-void parse_propertygroup(const shared_ptr<Project>& p, const XMLElement* e) {
+void parse_property_group(const std::shared_ptr<Project>& p,
+                          const tinyxml2::XMLElement* e) {
   auto av = e->Attribute("Condition");
   if (av) {
-    string_view condition(av);
-    if (condition.find_first_of("Release") != string_view::npos) {
+    std::string_view condition(av);
+    if (condition.find_first_of("Release") != std::string_view::npos) {
       parse_conditional_propertygroup(p, e);
     }
   }
 
   auto gbl = e->Attribute("Label");
-  if (gbl && string(gbl) == "Globals") parse_global_propertygroup(p, e);
+  if (gbl && std::string(gbl) == "Globals") parse_global_propertygroup(p, e);
 }
 
-void parse_conditional_propertygroup(const shared_ptr<Project>& p,
-                                     const XMLElement* e) {
+void parse_conditional_propertygroup(const std::shared_ptr<Project>& p,
+                                     const tinyxml2::XMLElement* e) {
   for (auto i : e) {
-    string name = i->Name();
-    string text = i->GetText();
+    std::string name = i->Name();
+    std::string text = i->GetText();
 
     if (name == "TargetName") p->name = text;
     if (name == "ConfigurationType") {
       if (text == "Application") p->isApplication = true;
     }
-    if (name == "ClCompile") parse_clcompile(p, i);
+    if (name == "ClCompile") parse_cl_compile(p, i);
   }
 }
 
-void parse_global_propertygroup(const shared_ptr<Project>& p,
-                                const XMLElement* e) {
+void parse_global_propertygroup(const std::shared_ptr<Project>& p,
+                                const tinyxml2::XMLElement* e) {
   for (auto i : e) {
-    string name = i->Name();
-    string text = i->GetText();
+    std::string name = i->Name();
+    std::string text = i->GetText();
 
     if (name == "RootNamespace") p->name = text;
   }
 }
 
-void parse_itemgroup(const shared_ptr<Project>& p, const XMLElement* e) {
+void parse_item_group(const std::shared_ptr<Project>& p,
+                      const tinyxml2::XMLElement* e) {
   auto av = e->Attribute("Condition");
   if (av) {
-    string_view condition(av);
-    if (condition.find_first_of("Release") == string_view::npos) return;
+    std::string_view condition(av);
+    if (condition.find_first_of("Release") == std::string_view::npos) return;
   }
 
   for (auto x : e) {
-    string name = x->Name();
+    std::string name = x->Name();
     if (name == "ClCompile") {
       auto inc = x->Attribute("Include");
       if (inc) {
         p->source.emplace_back(inc);
       } else {
-        parse_clcompile(p, x);
+        parse_cl_compile(p, x);
       }
     }
   }
 }
 
-void parse_clcompile(const shared_ptr<Project>& p, const XMLElement* e) {
+void parse_cl_compile(const std::shared_ptr<Project>& p,
+                      const tinyxml2::XMLElement* e) {
   for (auto x : e) {
-    string name = x->Name();
-    string text = x->GetText();
+    std::string name = x->Name();
+    std::string text = x->GetText();
     if (name == "AdditionalIncludeDirectories") {
-      parse_additionalincludes(p, text);
+      parse_additional_includes(p, text);
     }
     if (name == "LanguageStandard") {
       if (text == "stdcpp11")
@@ -108,16 +107,16 @@ void parse_clcompile(const shared_ptr<Project>& p, const XMLElement* e) {
   }
 }
 
-void parse_additionalincludes(const shared_ptr<Project>& p,
-                              const string_view& incs) {
-  string_view delim{";"};
-  const string ProjectDir = "$(ProjectDir)";
+void parse_additional_includes(const std::shared_ptr<Project>& p,
+                               const std::string_view& incs) {
+  std::string_view delim{";"};
+  const std::string ProjectDir = "$(ProjectDir)";
 
-  for (const auto i : split(incs, delim)) {
-    auto c = string_view(i.begin(), i.end());
+  for (const auto i : std::ranges::views::split(incs, delim)) {
+    auto c = std::string_view(i.begin(), i.end());
     if (c.starts_with(ProjectDir)) {
       c.remove_prefix(ProjectDir.size());
-      string mydir = string("${CMAKE_PROJECT_DIR}") + string(c);
+      std::string mydir = std::string("${CMAKE_PROJECT_DIR}") + std::string(c);
       p->includes.emplace_back(mydir);
     } else {
       p->includes.emplace_back(c);

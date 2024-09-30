@@ -1,5 +1,5 @@
-#ifndef PARSE_PROJECT_H
-#define PARSE_PROJECT_H
+#ifndef MS_BUILD_TO_CMAKE_PARSE_PROJECT_H_
+#define MS_BUILD_TO_CMAKE_PARSE_PROJECT_H_
 
 #include <tinyxml2.h>
 
@@ -8,16 +8,18 @@
 
 #include "project.h"
 
-using std::make_shared;
-using std::shared_ptr;
-using std::string_view;
-using tinyxml2::XMLElement;
+std::shared_ptr<Project> parse_project(const tinyxml2::XMLElement* e);
 
-shared_ptr<Project> parse_project(const XMLElement* e);
+void parse_property_group(const std::shared_ptr<Project>& p,
+                          const tinyxml2::XMLElement* e);
 
-void parse_propertygroup(const shared_ptr<Project>& p, const XMLElement* e);
-void parse_itemgroup(const shared_ptr<Project>& p, const XMLElement* e);
-void parse_clcompile(const shared_ptr<Project>& p, const XMLElement* e);
-void parse_additionalincludes(const shared_ptr<Project>& p,
-                              const string_view& incs);
-#endif
+void parse_item_group(const std::shared_ptr<Project>& p,
+                      const tinyxml2::XMLElement* e);
+
+void parse_cl_compile(const std::shared_ptr<Project>& p,
+                      const tinyxml2::XMLElement* e);
+
+void parse_additional_includes(const std::shared_ptr<Project>& p,
+                               const std::string_view& incs);
+
+#endif  // MS_BUILD_TO_CMAKE_PARSE_PROJECT_H_

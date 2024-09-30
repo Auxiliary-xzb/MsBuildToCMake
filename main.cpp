@@ -2,22 +2,17 @@
 
 #include "parse_project.h"
 
-using std::cerr;
-using std::cout;
-using std::endl;
-using tinyxml2::XMLDocument;
-
 int main(int argc, const char* argv[]) {
   if (argc == 1) {
-    cerr << "usage: msbuildtocmake project.vcxproj" << endl;
+    std::cerr << "usage: " << argv[0] << "<project.vcxproj>" << std::endl;
     return 1;
   }
 
-  XMLDocument doc;
-  doc.LoadFile(argv[1]);
-  auto p = parse_project(doc.RootElement());
+  tinyxml2::XMLDocument document;
+  document.LoadFile(argv[1]);
+  auto p = parse_project(document.RootElement());
 
-  cout << *p;
+  std::cout << *p;
 
   return 0;
 }
