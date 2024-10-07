@@ -4,7 +4,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(MsBuildConvertToCMake LANGUAGES CXX VERSION 0.1)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include(FetchContent)
 
@@ -30,9 +30,7 @@ FetchContent_MakeAvailable(tinyxml tinyxmlex spdlog)
 include_directories(${tinyxml_SOURCE_DIR} ${tinyxmlex_SOURCE_DIR} ${spdlog_SOURCE_DIR}/include)
 
 add_executable(${PROJECT_NAME}
-        project.cpp
-        parse_project.cpp
-        main.cpp
+        main.cc
         ${tinyxml2_SOURCE_DIR}/tinyxml2.cpp
         visual_studio_project.cc
         visual_studio_project.h
