@@ -21,11 +21,11 @@ class ProjectConfiguration {
 
  public:
   ProjectConfiguration(std::string configuration, std::string platform)
-      : configuration_type_(ConfigurationType::kUndefined),
-        configuration_(std::move(configuration)),
-        platform_(std::move(platform)) {}
+      : configuration_(std::move(configuration)),
+        platform_(std::move(platform)),
+        configuration_type_(ConfigurationType::kUndefined) {}
 
-  std::string ToString() const {
+  [[nodiscard]] std::string ToString() const {
     return fmt::format("{}|{}", configuration_, platform_);
   }
 
@@ -34,17 +34,23 @@ class ProjectConfiguration {
            platform_ == other.platform_;
   }
 
-  auto configuration() const -> std::string { return configuration_; }
+  [[nodiscard]] auto configuration() const -> std::string {
+    return configuration_;
+  }
 
-  auto platform() const -> std::string { return platform_; }
+  [[nodiscard]] auto platform() const -> std::string { return platform_; }
 
-  auto output_directory() const -> std::string { return output_directory_; }
+  [[nodiscard]] auto output_directory() const -> std::string {
+    return output_directory_;
+  }
 
-  auto intermediate_directory() const -> std::string {
+  [[nodiscard]] auto intermediate_directory() const -> std::string {
     return intermediate_directory_;
   }
 
-  auto additional_options() const -> std::string { return additional_options_; }
+  [[nodiscard]] auto additional_options() const -> std::string {
+    return additional_options_;
+  }
 
   void set_configuration_type(const std::string &type_str);
 
@@ -65,13 +71,14 @@ class ProjectConfiguration {
   std::string pre_build_event_;                         ///< 生成后事件命令
 };
 
-inline auto format_as(ProjectConfiguration project_configuration)
+inline auto format_as(const ProjectConfiguration &project_configuration)
     -> std::string {
   return project_configuration.ToString();
 }
 
 inline auto format_as(
-    ProjectConfiguration::ConfigurationType configuration_type) -> std::string {
+    const ProjectConfiguration::ConfigurationType configuration_type)
+    -> std::string {
   std::string configuration_type_str;
   switch (configuration_type) {
     case ProjectConfiguration::ConfigurationType::kApplication: {

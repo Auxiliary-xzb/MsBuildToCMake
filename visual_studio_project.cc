@@ -10,7 +10,8 @@
 
 using namespace axsp;
 
-static std::vector<std::string> Split(const std::string& s, char delimiter);
+static std::vector<std::string> Split(const std::string& s,
+                                      const char& delimiter);
 
 void ProjectConfiguration::set_configuration_type(const std::string& type_str) {
   if (type_str == "Application") {
@@ -243,7 +244,7 @@ void VisualStudioProject::ParseAdditionalLibraryDirectories() {
   }
 }
 
-std::vector<std::string> Split(const std::string& s, char delimiter) {
+std::vector<std::string> Split(const std::string& s, const char& delimiter) {
   std::vector<std::string> tokens;
   std::istringstream ss(s);
   std::string token;
