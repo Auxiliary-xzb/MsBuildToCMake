@@ -65,8 +65,29 @@ class ProjectConfiguration {
   std::string pre_build_event_;                         ///< 生成后事件命令
 };
 
-inline auto format_as(ProjectConfiguration project_configuration) {
+inline auto format_as(ProjectConfiguration project_configuration)
+    -> std::string {
   return project_configuration.ToString();
+}
+
+inline auto format_as(
+    ProjectConfiguration::ConfigurationType configuration_type) -> std::string {
+  std::string configuration_type_str;
+  switch (configuration_type) {
+    case ProjectConfiguration::ConfigurationType::kApplication: {
+      configuration_type_str = "Application";
+      break;
+    }
+    case ProjectConfiguration::ConfigurationType::kDynamicLibrary: {
+      configuration_type_str = "DynamicLibrary";
+      break;
+    }
+    default:
+      configuration_type_str = "Unknown";
+      break;
+  }
+
+  return configuration_type_str;
 }
 
 class VisualStudioProject {
@@ -86,10 +107,13 @@ class VisualStudioProject {
   }
 
  private:
-  void ParseProjectConfigurations();
+  void ParseConfigurationAndPlatform();
   void ParseHeaderFiles();
   void ParseSourceFiles();
-  void ParseProjectConfiguration();
+  void ParseOutputDirectories();
+  void ParseIntermediateDirectories();
+  void ParseAdditionalIncludeDirectories();
+  void ParseAdditionalLibraryDirectories();
 
  private:
   std::string project_name_;                  ///< 项目名称

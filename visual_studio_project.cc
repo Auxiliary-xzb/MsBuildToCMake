@@ -1,7 +1,6 @@
 #include "visual_studio_project.h"
 
 #include <spdlog/fmt/bundled/core.h>
-#include <spdlog/fmt/bundled/format.h>
 #include <spdlog/spdlog.h>
 #include <tinyxml2.h>
 #include <tixml2ex.h>
@@ -10,6 +9,8 @@
 #include <string>
 
 using namespace axsp;
+
+static std::vector<std::string> Split(const std::string& s, char delimiter);
 
 void ProjectConfiguration::set_configuration_type(const std::string& type_str) {
   if (type_str == "Application") {
@@ -38,13 +39,26 @@ bool VisualStudioProject::ParseFromFile(
     return false;
   }
 
-  ParseProjectConfigurations();
+  ParseConfigurationAndPlatform();
   ParseHeaderFiles();
   ParseSourceFiles();
+  ParseOutputDirectories();
+  ParseIntermediateDirectories();
+  ParseAdditionalIncludeDirectories();
+  ParseAdditionalLibraryDirectories();
   return true;
 }
 
-void VisualStudioProject::ParseProjectConfigurations() {
+void VisualStudioProject::ParseConfigurationAndPlatform() {
+  // <Project ...>
+  //   <ItemGroup Label="ProjectConfigurations">
+  //     <ProjectConfiguration Include="Debug|Win32">
+  //       <Configuration>Debug</Configuration>
+  //       <Platform>Win32</Platform>
+  //     </ProjectConfiguration>
+  //   </ItemGroup>
+  // </Project>
+  // 解析出Debug和Win32，并使用他们创建一个项目配置
   for (const auto* project_configuration :
        tinyxml2::selection(vcx_project_xml_document_,
                            "Project/ItemGroup/ProjectConfiguration")) {
@@ -63,6 +77,14 @@ void VisualStudioProject::ParseProjectConfigurations() {
 }
 
 void VisualStudioProject::ParseHeaderFiles() {
+  // <Project ...>
+  //   <ItemGroup>
+  //     <ClInclude Include="xx.h" />
+  //     <ClInclude Include="yyy.h" />
+  //    </ItemGroup>
+  // </Project>
+  // 收集所有的源文件
+
   for (const auto* header_file_element : tinyxml2::selection(
            vcx_project_xml_document_, "Project/ItemGroup/ClInclude")) {
     auto header_file =
@@ -78,6 +100,14 @@ void VisualStudioProject::ParseHeaderFiles() {
 }
 
 void VisualStudioProject::ParseSourceFiles() {
+  // <Project ...>
+  //   <ItemGroup>
+  //     <ClCompile Include="xx.cc" />
+  //     <ClCompile Include="yyy.cc" />
+  //    </ItemGroup>
+  // </Project>
+  // 收集所有的源文件
+
   for (const auto* source_file_element : tinyxml2::selection(
            vcx_project_xml_document_, "Project/ItemGroup/ClCompile")) {
     auto source_file =
@@ -92,27 +122,135 @@ void VisualStudioProject::ParseSourceFiles() {
   spdlog::info("{}", fmt::join(source_file_vec_, "\n"));
 }
 
-void VisualStudioProject::ParseProjectConfiguration() {
-  for (auto& project_configuration : project_configuration_vec_) {
-    auto configuration = project_configuration.ToString();
-
-    // 查找生成的目标类型
-    for (const auto* property_group_element : tinyxml2::selection(
-             vcx_project_xml_document_, "Project/PropertyGroup")) {
-      auto condition = property_group_element->Attribute("Condition");
-      if (condition != nullptr &&
-          std::string(condition).find_first_of(configuration)) {
-        for (const auto* configuration_type_element :
-             tinyxml2::selection(property_group_element, "ConfigurationType")) {
-          project_configuration.set_configuration_type(
-              tinyxml2::text(configuration_type_element));
-        }
-      }
+void VisualStudioProject::ParseOutputDirectories() {
+  for (const auto* property_group_element : tinyxml2::selection(
+           vcx_project_xml_document_, "Project/PropertyGroup")) {
+    const auto* out_dir_element =
+        tinyxml2::find_element(property_group_element, "OutDir");
+    if (out_dir_element == nullptr) {
+      continue;
     }
+
+    auto condition =
+        tinyxml2::attribute_value(property_group_element, "Condition");
+
+    auto it = std::find_if(
+        project_configuration_vec_.begin(), project_configuration_vec_.end(),
+        [&](const ProjectConfiguration& project_configuration) {
+          return condition.find(project_configuration.ToString()) != -1;
+        });
+
+    if (it == project_configuration_vec_.end()) {
+      spdlog::info("No Such ProjectConfiguration : {}", condition);
+      continue;
+    }
+
+    it->output_directory_ = tinyxml2::text(out_dir_element);
+    spdlog::info("configuration : {}, OutDir is {} ", it->ToString(),
+                 tinyxml2::text(out_dir_element));
+  }
+}
+
+void VisualStudioProject::ParseIntermediateDirectories() {
+  for (const auto* property_group_element : tinyxml2::selection(
+           vcx_project_xml_document_, "Project/PropertyGroup")) {
+    const auto* int_dir_element =
+        tinyxml2::find_element(property_group_element, "IntDir");
+    if (int_dir_element == nullptr) {
+      continue;
+    }
+
+    auto condition =
+        tinyxml2::attribute_value(property_group_element, "Condition");
+
+    auto it = std::find_if(
+        project_configuration_vec_.begin(), project_configuration_vec_.end(),
+        [&](const ProjectConfiguration& project_configuration) {
+          return condition.find(project_configuration.ToString()) != -1;
+        });
+
+    if (it == project_configuration_vec_.end()) {
+      spdlog::info("No Such ProjectConfiguration : {}", condition);
+      continue;
+    }
+
+    it->intermediate_directory_ = tinyxml2::text(int_dir_element);
+    spdlog::info("configuration : {}, IntDir is {} ", it->ToString(),
+                 tinyxml2::text(int_dir_element));
+  }
+}
+
+void VisualStudioProject::ParseAdditionalIncludeDirectories() {
+  for (const auto* item_definition_group_element : tinyxml2::selection(
+           vcx_project_xml_document_, "Project/ItemDefinitionGroup")) {
+    const auto* additional_include_directories_element =
+        tinyxml2::find_element(item_definition_group_element,
+                               "ClCompile/AdditionalIncludeDirectories");
+    if (additional_include_directories_element == nullptr) {
+      continue;
+    }
+
+    auto condition =
+        tinyxml2::attribute_value(item_definition_group_element, "Condition");
+
+    auto it = std::find_if(
+        project_configuration_vec_.begin(), project_configuration_vec_.end(),
+        [&](const ProjectConfiguration& project_configuration) {
+          return condition.find(project_configuration.ToString()) != -1;
+        });
+
+    if (it == project_configuration_vec_.end()) {
+      spdlog::info("No Such ProjectConfiguration : {}", condition);
+      continue;
+    }
+
+    it->additional_include_directory_vec_ =
+        Split(tinyxml2::text(additional_include_directories_element), ';');
+    spdlog::info("configuration : {},  additional include directories is {} ",
+                 it->ToString(),
+                 fmt::join(it->additional_include_directory_vec_, " "));
+  }
+}
+
+void VisualStudioProject::ParseAdditionalLibraryDirectories() {
+  for (const auto* item_definition_group_element : tinyxml2::selection(
+           vcx_project_xml_document_, "Project/ItemDefinitionGroup")) {
+    const auto* additional_library_directories_element = tinyxml2::find_element(
+        item_definition_group_element, "Link/AdditionalLibraryDirectories");
+    if (additional_library_directories_element == nullptr) {
+      continue;
+    }
+
+    auto condition =
+        tinyxml2::attribute_value(item_definition_group_element, "Condition");
+
+    auto it = std::find_if(
+        project_configuration_vec_.begin(), project_configuration_vec_.end(),
+        [&](const ProjectConfiguration& project_configuration) {
+          return condition.find(project_configuration.ToString()) != -1;
+        });
+
+    if (it == project_configuration_vec_.end()) {
+      spdlog::info("No Such ProjectConfiguration : {}", condition);
+      continue;
+    }
+
+    it->additional_library_directory_vec_ =
+        Split(tinyxml2::text(additional_library_directories_element), ';');
+    spdlog::info("configuration : {},  additional library directories is {} ",
+                 it->ToString(),
+                 fmt::join(it->additional_library_directory_vec_, " "));
+  }
+}
+
+std::vector<std::string> Split(const std::string& s, char delimiter) {
+  std::vector<std::string> tokens;
+  std::istringstream ss(s);
+  std::string token;
+
+  while (std::getline(ss, token, delimiter)) {
+    tokens.push_back(token);
   }
 
-  for (auto& project_configuration : project_configuration_vec_) {
-    //   spdlog::info("{}",
-    //                static_cast<int>(project_configuration.configuration_type_));
-   }
+  return tokens;
 }
