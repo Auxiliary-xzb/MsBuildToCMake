@@ -123,6 +123,8 @@ class VisualStudioProject {
   void ParsePreprocessorDefinitions();
   void ParseAdditionalOptions();
   void ParseAdditionalLibraryDirectories();
+  void ParsePostBuildEvent();
+  void ParsePreBuildEvent();
 
  private:
   std::string project_name_;                  ///< 项目名称

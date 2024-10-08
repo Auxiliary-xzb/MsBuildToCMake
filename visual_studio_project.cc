@@ -49,6 +49,8 @@ bool VisualStudioProject::ParseFromFile(
   ParsePreprocessorDefinitions();
   ParseAdditionalOptions();
   ParseAdditionalLibraryDirectories();
+  ParsePostBuildEvent();
+  ParsePreBuildEvent();
   return true;
 }
 
@@ -303,6 +305,64 @@ void VisualStudioProject::ParseAdditionalLibraryDirectories() {
     spdlog::info("configuration : {},  additional library directories is {} ",
                  it->ToString(),
                  fmt::join(it->additional_library_directory_vec_, " "));
+  }
+}
+
+void VisualStudioProject::ParsePostBuildEvent() {
+  for (const auto* item_definition_group_element : tinyxml2::selection(
+           vcx_project_xml_document_, "Project/ItemDefinitionGroup")) {
+    const auto* post_build_event_command_element = tinyxml2::find_element(
+        item_definition_group_element, "PostBuildEvent/Command");
+    if (post_build_event_command_element == nullptr) {
+      continue;
+    }
+
+    auto condition =
+        tinyxml2::attribute_value(item_definition_group_element, "Condition");
+
+    auto it = std::find_if(
+        project_configuration_vec_.begin(), project_configuration_vec_.end(),
+        [&](const ProjectConfiguration& project_configuration) {
+          return condition.find(project_configuration.ToString()) != -1;
+        });
+
+    if (it == project_configuration_vec_.end()) {
+      spdlog::info("No Such ProjectConfiguration : {}", condition);
+      continue;
+    }
+
+    it->post_build_event_ = tinyxml2::text(post_build_event_command_element);
+    spdlog::info("configuration : {},  post build event command is {} ",
+                 it->ToString(), it->post_build_event_);
+  }
+}
+
+void VisualStudioProject::ParsePreBuildEvent() {
+  for (const auto* item_definition_group_element : tinyxml2::selection(
+           vcx_project_xml_document_, "Project/ItemDefinitionGroup")) {
+    const auto* pre_build_event_command_element = tinyxml2::find_element(
+        item_definition_group_element, "PreBuildEvent/Command");
+    if (pre_build_event_command_element == nullptr) {
+      continue;
+    }
+
+    auto condition =
+        tinyxml2::attribute_value(item_definition_group_element, "Condition");
+
+    auto it = std::find_if(
+        project_configuration_vec_.begin(), project_configuration_vec_.end(),
+        [&](const ProjectConfiguration& project_configuration) {
+          return condition.find(project_configuration.ToString()) != -1;
+        });
+
+    if (it == project_configuration_vec_.end()) {
+      spdlog::info("No Such ProjectConfiguration : {}", condition);
+      continue;
+    }
+
+    it->pre_build_event_ = tinyxml2::text(pre_build_event_command_element);
+    spdlog::info("configuration : {},  pre build event command is {} ",
+                 it->ToString(), it->pre_build_event_);
   }
 }
 
