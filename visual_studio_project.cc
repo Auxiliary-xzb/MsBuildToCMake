@@ -46,6 +46,8 @@ bool VisualStudioProject::ParseFromFile(
   ParseOutputDirectories();
   ParseIntermediateDirectories();
   ParseAdditionalIncludeDirectories();
+  ParsePreprocessorDefinitions();
+  ParseAdditionalOptions();
   ParseAdditionalLibraryDirectories();
   return true;
 }
@@ -210,6 +212,66 @@ void VisualStudioProject::ParseAdditionalIncludeDirectories() {
     spdlog::info("configuration : {},  additional include directories is {} ",
                  it->ToString(),
                  fmt::join(it->additional_include_directory_vec_, " "));
+  }
+}
+
+void VisualStudioProject::ParsePreprocessorDefinitions() {
+  for (const auto* item_definition_group_element : tinyxml2::selection(
+           vcx_project_xml_document_, "Project/ItemDefinitionGroup")) {
+    const auto* preprocessor_definitions_element = tinyxml2::find_element(
+        item_definition_group_element, "ClCompile/PreprocessorDefinitions");
+    if (preprocessor_definitions_element == nullptr) {
+      continue;
+    }
+
+    auto condition =
+        tinyxml2::attribute_value(item_definition_group_element, "Condition");
+
+    auto it = std::find_if(
+        project_configuration_vec_.begin(), project_configuration_vec_.end(),
+        [&](const ProjectConfiguration& project_configuration) {
+          return condition.find(project_configuration.ToString()) != -1;
+        });
+
+    if (it == project_configuration_vec_.end()) {
+      spdlog::info("No Such ProjectConfiguration : {}", condition);
+      continue;
+    }
+
+    it->preprocessor_definition_vec_ =
+        Split(tinyxml2::text(preprocessor_definitions_element), ';');
+    spdlog::info("configuration : {},  preprocessor definitions is {} ",
+                 it->ToString(),
+                 fmt::join(it->preprocessor_definition_vec_, " "));
+  }
+}
+
+void VisualStudioProject::ParseAdditionalOptions() {
+  for (const auto* item_definition_group_element : tinyxml2::selection(
+           vcx_project_xml_document_, "Project/ItemDefinitionGroup")) {
+    const auto* additional_options_element = tinyxml2::find_element(
+        item_definition_group_element, "ClCompile/AdditionalOptions");
+    if (additional_options_element == nullptr) {
+      continue;
+    }
+
+    auto condition =
+        tinyxml2::attribute_value(item_definition_group_element, "Condition");
+
+    auto it = std::find_if(
+        project_configuration_vec_.begin(), project_configuration_vec_.end(),
+        [&](const ProjectConfiguration& project_configuration) {
+          return condition.find(project_configuration.ToString()) != -1;
+        });
+
+    if (it == project_configuration_vec_.end()) {
+      spdlog::info("No Such ProjectConfiguration : {}", condition);
+      continue;
+    }
+
+    it->additional_options_ = tinyxml2::text(additional_options_element);
+    spdlog::info("configuration : {}, additional options is {} ",
+                 it->ToString(), it->additional_options_);
   }
 }
 

@@ -120,6 +120,8 @@ class VisualStudioProject {
   void ParseOutputDirectories();
   void ParseIntermediateDirectories();
   void ParseAdditionalIncludeDirectories();
+  void ParsePreprocessorDefinitions();
+  void ParseAdditionalOptions();
   void ParseAdditionalLibraryDirectories();
 
  private:
