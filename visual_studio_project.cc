@@ -17,16 +17,6 @@ using tinyxml2::text;
 static std::vector<std::string> Split(const std::string& s,
                                       const char& delimiter);
 
-void ProjectConfiguration::set_configuration_type(const std::string& type_str) {
-  if (type_str == "Application") {
-    configuration_type_ = ConfigurationType::kApplication;
-  }
-
-  if (type_str == "DynamicLibrary") {
-    configuration_type_ = ConfigurationType::kDynamicLibrary;
-  }
-}
-
 bool VisualStudioProject::ParseFromFile(
     const std::string& vcx_project_file_path) {
   if (!std::filesystem::exists(vcx_project_file_path)) {

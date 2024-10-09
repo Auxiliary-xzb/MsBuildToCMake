@@ -34,4 +34,6 @@ add_executable(${PROJECT_NAME}
         ${tinyxml2_SOURCE_DIR}/tinyxml2.cpp
         visual_studio_project.cc
         visual_studio_project.h
+        project_config.cc
+        project_config.h
 )
